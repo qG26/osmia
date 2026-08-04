@@ -21,7 +21,10 @@ chaque recommandation, et affiche la meilleure offre disponible.
 
 2. Créez un projet [Supabase](https://supabase.com), puis copiez `.env.local.example`
    vers `.env.local` et renseignez `NEXT_PUBLIC_SUPABASE_URL` et
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API).
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API). Pour le tableau
+   de bord admin (`/admin`), renseignez aussi `SUPABASE_SERVICE_ROLE_KEY`
+   (même page, section `service_role` — à ne jamais exposer côté client) et
+   `ADMIN_EMAILS` (liste d'e-mails autorisés, séparés par des virgules).
 
 3. Appliquez le schéma et les données de démonstration, soit via le Supabase
    CLI (`supabase db push` après avoir lié le projet), soit en collant le

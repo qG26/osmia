@@ -26,6 +26,8 @@ export type Perfume = {
   intensity: number;
   longevity: number;
   description: string | null;
+  popularity: number;
+  created_at: string;
 };
 
 export type Retailer = {

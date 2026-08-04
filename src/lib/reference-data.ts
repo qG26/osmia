@@ -126,6 +126,25 @@ export const BUDGET_LABELS: Record<BudgetTier, string> = {
 // Ordre des tiers pour déterminer l'adjacence lors du scoring budget.
 export const BUDGET_ORDER: BudgetTier[] = ["eco", "mid", "premium", "luxe"];
 
+export const FAVORITE_STATUSES = [
+  "possede",
+  "teste",
+  "souhaite",
+  "favori",
+  "echantillon",
+  "termine",
+] as const;
+export type FavoriteStatusValue = (typeof FAVORITE_STATUSES)[number];
+
+export const FAVORITE_STATUS_LABELS: Record<FavoriteStatusValue, string> = {
+  possede: "Possédé",
+  teste: "Testé",
+  souhaite: "Souhaité",
+  favori: "Favori",
+  echantillon: "Échantillon",
+  termine: "Terminé",
+};
+
 export const NOTES = [
   "Bergamote",
   "Citron",
