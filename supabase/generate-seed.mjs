@@ -70,12 +70,14 @@ lines.push(
     .join(",\n") + ";\n"
 );
 
-lines.push("insert into perfumes (name, brand, gender, families, notes, style, occasions, budget_tier, intensity, longevity, description) values");
+lines.push("insert into perfumes (name, brand, gender, families, notes, style, occasions, budget_tier, intensity, longevity, description, popularity, created_at) values");
 lines.push(
   perfumes
     .map((p) => {
       const description = `${p.name} par ${p.brand}, une composition ${p.families.join(" et ")} pensée pour ${p.occasions.slice(0, 2).join(" et ")}.`;
-      return `  (${esc(p.name)}, ${esc(p.brand)}, ${esc(p.gender)}, ${arr(p.families)}, ${arr(p.notes)}, ${arr(p.style)}, ${arr(p.occasions)}, ${esc(p.budget_tier)}, ${p.intensity}, ${p.longevity}, ${esc(description)})`;
+      const popularity = Math.floor(rand() * 100);
+      const daysAgo = Math.floor(rand() * 400); // certains parfums récents, d'autres plus anciens
+      return `  (${esc(p.name)}, ${esc(p.brand)}, ${esc(p.gender)}, ${arr(p.families)}, ${arr(p.notes)}, ${arr(p.style)}, ${arr(p.occasions)}, ${esc(p.budget_tier)}, ${p.intensity}, ${p.longevity}, ${esc(description)}, ${popularity}, now() - interval '${daysAgo} days')`;
     })
     .join(",\n") + ";\n"
 );
