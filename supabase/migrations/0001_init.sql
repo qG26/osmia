@@ -92,53 +92,65 @@ alter table profiles enable row level security;
 alter table favorites enable row level security;
 alter table price_alerts enable row level security;
 
+drop policy if exists "Les utilisateurs lisent leur propre profil" on profiles;
 create policy "Les utilisateurs lisent leur propre profil"
   on profiles for select
   using (auth.uid() = id);
 
+drop policy if exists "Les utilisateurs créent leur propre profil" on profiles;
 create policy "Les utilisateurs créent leur propre profil"
   on profiles for insert
   with check (auth.uid() = id);
 
+drop policy if exists "Les utilisateurs modifient leur propre profil" on profiles;
 create policy "Les utilisateurs modifient leur propre profil"
   on profiles for update
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+drop policy if exists "Les utilisateurs suppriment leur propre profil" on profiles;
 create policy "Les utilisateurs suppriment leur propre profil"
   on profiles for delete
   using (auth.uid() = id);
 
+drop policy if exists "Les utilisateurs lisent leurs propres favoris" on favorites;
 create policy "Les utilisateurs lisent leurs propres favoris"
   on favorites for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs créent leurs propres favoris" on favorites;
 create policy "Les utilisateurs créent leurs propres favoris"
   on favorites for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs modifient leurs propres favoris" on favorites;
 create policy "Les utilisateurs modifient leurs propres favoris"
   on favorites for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs suppriment leurs propres favoris" on favorites;
 create policy "Les utilisateurs suppriment leurs propres favoris"
   on favorites for delete
   using (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs lisent leurs propres alertes" on price_alerts;
 create policy "Les utilisateurs lisent leurs propres alertes"
   on price_alerts for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs créent leurs propres alertes" on price_alerts;
 create policy "Les utilisateurs créent leurs propres alertes"
   on price_alerts for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs modifient leurs propres alertes" on price_alerts;
 create policy "Les utilisateurs modifient leurs propres alertes"
   on price_alerts for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "Les utilisateurs suppriment leurs propres alertes" on price_alerts;
 create policy "Les utilisateurs suppriment leurs propres alertes"
   on price_alerts for delete
   using (auth.uid() = user_id);
@@ -150,18 +162,22 @@ alter table retailers enable row level security;
 alter table perfume_offers enable row level security;
 alter table price_history enable row level security;
 
+drop policy if exists "Catalogue de parfums public en lecture" on perfumes;
 create policy "Catalogue de parfums public en lecture"
   on perfumes for select
   using (true);
 
+drop policy if exists "Revendeurs publics en lecture" on retailers;
 create policy "Revendeurs publics en lecture"
   on retailers for select
   using (true);
 
+drop policy if exists "Offres publiques en lecture" on perfume_offers;
 create policy "Offres publiques en lecture"
   on perfume_offers for select
   using (true);
 
+drop policy if exists "Historique de prix public en lecture" on price_history;
 create policy "Historique de prix public en lecture"
   on price_history for select
   using (true);
@@ -170,6 +186,7 @@ create policy "Historique de prix public en lecture"
 -- pas de lecture publique (réservée au service role / tableau de bord admin).
 alter table affiliate_clicks enable row level security;
 
+drop policy if exists "Tout le monde peut enregistrer un clic affilié" on affiliate_clicks;
 create policy "Tout le monde peut enregistrer un clic affilié"
   on affiliate_clicks for insert
   with check (true);
