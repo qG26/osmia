@@ -1,87 +1,75 @@
-# AdsLens
+# OSMIA
 
-AdsLens analyse vos exports CSV Google Ads pour repérer les dépenses
-publicitaires inutiles : termes de recherche hors zone ou sans conversion,
-produits Shopping/PMax qui dépensent sans jamais convertir.
-
-**Tout le traitement se fait localement, dans votre navigateur.** Aucun
-fichier, aucune donnée n'est envoyée à un serveur ou à un service tiers —
-il n'y a d'ailleurs pas de backend du tout.
+Moteur de recommandation de parfums par IA. OSMIA apprend votre profil
+olfactif via un quiz, calcule une compatibilité pour chaque parfum, explique
+chaque recommandation, et affiche la meilleure offre disponible.
 
 ## Stack
 
-- Vite + React + TypeScript
+- Next.js (App Router) + TypeScript
 - Tailwind CSS
-- React Router
-- PapaParse pour le parsing CSV
-- Vitest pour les tests unitaires de la logique métier (`src/lib`)
+- Supabase (Postgres, Auth, Row Level Security)
+- Recharts (radar chart de l'empreinte olfactive)
 
-## Installation et développement
+## Démarrer en local
 
-```bash
-npm install
-npm run dev
-```
+1. Installez les dépendances :
 
-Ouvrez [http://localhost:5173](http://localhost:5173).
+   ```bash
+   npm install
+   ```
 
-## Tests
+2. Créez un projet [Supabase](https://supabase.com), puis copiez `.env.local.example`
+   vers `.env.local` et renseignez `NEXT_PUBLIC_SUPABASE_URL` et
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API). Pour le tableau
+   de bord admin (`/admin`), renseignez aussi `SUPABASE_SERVICE_ROLE_KEY`
+   (même page, section `service_role` — à ne jamais exposer côté client) et
+   `ADMIN_EMAILS` (liste d'e-mails autorisés, séparés par des virgules).
 
-```bash
-npm run test
-```
+3. Appliquez le schéma et les données de démonstration, soit via le Supabase
+   CLI (`supabase db push` après avoir lié le projet), soit en collant le
+   contenu des fichiers suivants dans l'éditeur SQL du dashboard Supabase,
+   dans cet ordre :
 
-Les tests couvrent `src/lib` : détection de l'en-tête au milieu des
-métadonnées, exclusion des lignes de synthèse (« Total », « Autres
-termes »), parsing des nombres au format européen, détection géographique
-sur mots entiers, classification zombie/ROAS, dédoublonnage à l'export.
+   - `supabase/migrations/0001_init.sql` — schéma + RLS
+   - `supabase/seed.sql` — 18 parfums, 4 revendeurs, offres et historique de prix fictifs
 
-Des fichiers CSV d'exemple, reproduisant la structure réelle des exports
-Google Ads (métadonnées + lignes de synthèse), sont dans `fixtures/`.
+   Le fichier `supabase/seed.sql` est généré depuis `supabase/generate-seed.mjs` ;
+   relancez `node supabase/generate-seed.mjs > supabase/seed.sql` si vous modifiez
+   le jeu de données source.
 
-## Build
+4. Lancez le serveur de développement :
 
-```bash
-npm run build
-```
+   ```bash
+   npm run dev
+   ```
 
-Génère le site statique dans `dist/`.
-
-## Déploiement (Netlify)
-
-Le dépôt contient un `netlify.toml` prêt à l'emploi :
-
-- Commande de build : `npm run build`
-- Dossier publié : `dist`
-- Redirection SPA : toutes les routes renvoient vers `index.html`
-
-Il suffit de connecter le dépôt à Netlify (ou de glisser `dist/` sur
-[app.netlify.com/drop](https://app.netlify.com/drop)) — aucune variable
-d'environnement n'est nécessaire, l'application n'a pas de backend.
+   Ouvrez [http://localhost:3000](http://localhost:3000).
 
 ## Structure
 
-```
-src/
-  pages/            Home, SearchAnalyzer, ShoppingAnalyzer
-  components/       Header, Footer, FileDropzone, StatCard, ExportMenu,
-                     ExportPreviewModal, Guide, BackupBanner
-  lib/              Logique métier pure, testée, sans dépendance à React :
-                     csvCore, searchParser, shoppingParser, cities,
-                     negatives, classification, exporters, storage
-  types.ts          Types partagés
-fixtures/           CSV d'exemple pour les tests
-```
+- `src/app` — routes App Router (pages + routes API)
+- `src/components` — composants UI (design system maison + shadcn-like primitives)
+- `src/lib` — logique métier partagée : scoring, données de référence, clients Supabase
+- `supabase/` — migrations SQL et données de seed
 
-## Confidentialité
+## Logique de scoring
 
-Les fichiers CSV Google Ads contiennent des données commerciales
-confidentielles. AdsLens ne fait aucun appel réseau sortant pendant
-l'analyse : pas de télémétrie, pas d'API, pas de compte utilisateur. C'est
-une contrainte de conception, pas une option désactivable.
+Implémentée dans `src/lib/scoring.ts`, réutilisée par la route API
+`/api/recommendations` et par la page `/resultats` (rendu serveur). Voir les
+commentaires du fichier pour le détail des pondérations (familles, styles,
+occasions, notes aimées/évitées, budget) et la génération des phrases
+d'explication en français.
 
----
+## Statut des phases
 
-Logiciel propriétaire. Tous droits réservés. Ce n'est pas un logiciel
-open source ; aucune licence d'utilisation, de modification ou de
-redistribution n'est accordée.
+- **Phase 1 — Fondations** : auth, quiz en 7 étapes, scoring, résultats,
+  radar chart, offres + tracking de clic affilié. ✅
+- **Phase 2 — Fiche parfum et collection** : page détail, alternatives,
+  collection à 6 statuts, recherche en langage naturel. ✅
+- **Phase 3 — Prix avancé et découverte** : page de découverte à filtres
+  combinables, historique de prix, alertes de prix (création, sans envoi
+  d'e-mail automatisé), tableau de bord admin. ✅ (l'intégration d'un vrai
+  flux d'affiliation et l'envoi d'e-mails d'alerte nécessitent des services
+  externes à configurer en production — voir le code pour les points
+  d'extension).
