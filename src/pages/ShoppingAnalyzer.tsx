@@ -57,6 +57,33 @@ function roasTone(roas: number, roasTarget: number): string {
   return "text-green-600";
 }
 
+interface ProductThumbnailProps {
+  imageUrl: string;
+  /** Quand false, l'URL distante n'est jamais posée dans le DOM : aucune requête réseau. */
+  enabled: boolean;
+  broken: boolean;
+  onBroken: () => void;
+}
+
+/**
+ * Vignette produit. Par défaut les vignettes sont désactivées : les URLs
+ * des images Shopping pointent vers les serveurs de Google
+ * (t3.gstatic.com), et les charger enverrait l'IP du visiteur à un tiers.
+ * Tant que `enabled` est false, on rend uniquement le placeholder local
+ * (data URI) — le navigateur ne fait alors aucune requête sortante.
+ */
+function ProductThumbnail({ imageUrl, enabled, broken, onBroken }: ProductThumbnailProps) {
+  const useRemote = enabled && !broken && imageUrl.trim() !== "";
+  return (
+    <img
+      src={useRemote ? imageUrl : PLACEHOLDER_IMAGE}
+      onError={onBroken}
+      alt=""
+      className="h-16 w-16 shrink-0 rounded-lg border border-slate-200 object-cover"
+    />
+  );
+}
+
 export default function ShoppingAnalyzer() {
   const [processState, setProcessState] = useState<ProcessState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -73,6 +100,7 @@ export default function ShoppingAnalyzer() {
   const [exclusions, setExclusions] = useState<ExclusionItem[]>([]);
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+  const [showThumbnails, setShowThumbnails] = useState(false);
 
   const [backup, setBackup] = useState<StorageBackup<ProductRaw> | null>(null);
   const [backupDismissed, setBackupDismissed] = useState(false);
@@ -296,6 +324,29 @@ export default function ShoppingAnalyzer() {
             </div>
           </div>
 
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={showThumbnails}
+                onChange={(event) => setShowThumbnails(event.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-slate-700">
+                  Afficher les vignettes produit
+                </span>
+                <span className="block text-xs text-slate-500">
+                  Désactivé par défaut. Les vignettes sont hébergées par Google
+                  (t3.gstatic.com) : les afficher fait sortir une requête de votre
+                  navigateur vers leurs serveurs. Aucune donnée de votre fichier CSV
+                  n'est envoyée, mais votre adresse IP est exposée à ce tiers. Tant que
+                  cette case est décochée, AdsLens ne contacte aucun serveur.
+                </span>
+              </span>
+            </label>
+          </div>
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard label="Produits analysés" value={String(stats.total)} />
             <StatCard label="Zombies" value={String(stats.zombieCount)} tone="red" />
@@ -376,11 +427,11 @@ export default function ShoppingAnalyzer() {
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={brokenImages.has(row.id) ? PLACEHOLDER_IMAGE : row.imageUrl || PLACEHOLDER_IMAGE}
-                          onError={() => setBrokenImages((prev) => new Set(prev).add(row.id))}
-                          alt=""
-                          className="h-16 w-16 shrink-0 rounded-lg border border-slate-200 object-cover"
+                        <ProductThumbnail
+                          imageUrl={row.imageUrl}
+                          enabled={showThumbnails}
+                          broken={brokenImages.has(row.id)}
+                          onBroken={() => setBrokenImages((prev) => new Set(prev).add(row.id))}
                         />
                         <div className="min-w-0">
                           <p className="truncate font-medium text-slate-800">{row.title || "(sans titre)"}</p>
@@ -433,11 +484,11 @@ export default function ShoppingAnalyzer() {
                     className="mt-1"
                     aria-label={`Sélectionner ${row.title}`}
                   />
-                  <img
-                    src={brokenImages.has(row.id) ? PLACEHOLDER_IMAGE : row.imageUrl || PLACEHOLDER_IMAGE}
-                    onError={() => setBrokenImages((prev) => new Set(prev).add(row.id))}
-                    alt=""
-                    className="h-16 w-16 shrink-0 rounded-lg border border-slate-200 object-cover"
+                  <ProductThumbnail
+                    imageUrl={row.imageUrl}
+                    enabled={showThumbnails}
+                    broken={brokenImages.has(row.id)}
+                    onBroken={() => setBrokenImages((prev) => new Set(prev).add(row.id))}
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
@@ -505,6 +556,18 @@ export default function ShoppingAnalyzer() {
                 Un produit « zombie » a dépensé plus que le seuil sans jamais convertir : c'est une
                 perte sèche. Le seuil est ajustable pour éviter de signaler des produits à faible
                 volume, pas encore significatifs.
+              </p>
+            ),
+          },
+          {
+            title: "Vignettes produit et confidentialité",
+            content: (
+              <p>
+                Les vignettes ne s'affichent que si vous cochez la case dédiée : ces
+                images sont hébergées par Google, donc les charger fait sortir une
+                requête de votre navigateur. Le reste de l'analyse est strictement
+                local. Ces URLs expirent régulièrement ; une image indisponible
+                bascule automatiquement sur un placeholder.
               </p>
             ),
           },

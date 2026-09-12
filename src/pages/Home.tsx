@@ -5,7 +5,7 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "Mes données CSV sont-elles envoyées quelque part ?",
     answer:
-      "Non. Le fichier est lu et analysé entièrement dans votre navigateur, avec JavaScript. Aucune requête réseau n'est déclenchée par l'analyse, aucun serveur ne reçoit vos données.",
+      "Non. Le fichier est lu et analysé entièrement dans votre navigateur, avec JavaScript. Aucune requête réseau n'est déclenchée par l'analyse, aucun serveur ne reçoit vos données. Seule exception, facultative et désactivée par défaut : dans l'analyseur Shopping, si vous cochez « Afficher les vignettes produit », votre navigateur va chercher ces images chez Google, qui les héberge. Même dans ce cas, rien du contenu de votre fichier n'est transmis.",
   },
   {
     question: "AdsLens est-il vraiment gratuit ?",
